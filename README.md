@@ -1,5 +1,5 @@
-# Communities-Geo-processing-Automation
-Geo-processing automation for Communities baseline Surveys project.
+# Communities Geo-processing Automation
+<b> Geo-processing automation for Communities baseline Surveys project.</b>
 
 The valuations division of The Ministry of Finance in Trinidad is responsible for the valuation of properties. This involves site visits by field assessors to individual properties in order collect information that informs the assessment of its financial value. Field maps for ArcGIS is used in hand held mobile devices with maps prepared by the GIS department.
 
