@@ -1,0 +1,42 @@
+class ToolValidator:
+  # Class to add custom behavior and properties to the tool and tool parameters.
+
+    def __init__(self):
+        # set self.params for use in other function
+        self.params = arcpy.GetParameterInfo()
+
+    def initializeParameters(self):
+        # Customize parameter properties. 
+        # This gets called when the tool is opened.
+        self.params[1].enabled = True
+        
+         
+                  
+    def updateParameters(self):
+        # Modify parameter values and properties.
+        # This gets called each time a parameter is modified, before 
+        # standard validation.
+        if self.params[0].value:
+            field_names = [f.name.upper() for f in arcpy.Describe(self.params[0].value).fields]
+
+            if "COMM_NAME" in field_names:
+                #self.params[1].enabled = True
+                sc = arcpy.da.SearchCursor(self.params[0].value,["COMM_NAME"])
+                community_names = {i[0] for i in sc}
+                sorted_values = sorted(list(community_names))
+                self.params[1].filter.list = sorted_values
+            else:
+                self.params[1].enabled = False
+                self.params[0].clearMessage()
+                
+
+    def updateMessages(self):
+        # Customize messages for the parameters.
+        # This gets called after standard validation.
+        if not self.params[0].value:
+            self.params[0].clearMessage()
+            self.params[0].setWarningMessage('Select the communities Feature Class')
+        elif self.params[0].value and "COMM_NAME" not in [f.name.upper() for f in arcpy.Describe(self.params[0].value).fields]:
+            self.params[0].setErrorMessage('Must select the communities feaure class with the Field "COMM_NAME" in it')
+        else:
+            self.params[0].clearMessage()
