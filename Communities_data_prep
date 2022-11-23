@@ -1,0 +1,42 @@
+import arcpy
+import re
+pattern = re.compile('\W+')
+def main():
+    param0 = arcpy.GetParameterAsText(0)           # Communities Feature Class
+    param1 = arcpy.GetParameterAsText(1)           # Community name to be extracted       
+    param2 = arcpy.GetParameterAsText(2)           # Roads Feature Class 
+    param3 = arcpy.GetParameterAsText(3)           # BuildingPts_Basaline Feature Class
+    
+   
+     
+    indivual_com = Extract_comm(param0, param1)     # Calling of Extract_comm function that separtes individual community twice ( for comm boundary and AOI)
+    clip_comm_roads(indivual_com,param1,param2)     # Calling of clip_comm_roads function that clips roads for indiviual comm and give appropirate name
+    clip_comm_baseline(indivual_com,param1,param3)  # Calling of clip_comm_baseline function that clips the building points baseline feature class
+    
+# This function extracts the inividual community from the communities feature class
+    
+def Extract_comm(param0, param1):
+    arcpy.management.MakeFeatureLayer(param0, 'individual_com')  # turns feature class into feature layer in order to enable geoprocessing.'indivual_comm'-outfeature name
+    fields = ['OBJECTID', 'comm_name']                           # feilds to be included in the individual commnity feature class to be extracted 
+    cursor = arcpy.da.SearchCursor('individual_com', fields)     # creation of iterable object in order search attribute table (only field = [objectid, comm_name]
+    for row in cursor:
+        arcpy.SelectLayerByAttribute_management('individual_com', 'NEW_SELECTION', 'OBJECTID = {}'.format(row[0])) # select the current row of table 
+        if row[1] == param1:
+            comm = arcpy.CopyFeatures_management(
+                'individual_com', re.sub(pattern, '_', '{}_Boundary'.format(row[1]))       #Copy the feature at the current row and give name at comm_name (Bondary)
+            )
+            aoi = arcpy.CopyFeatures_management(
+                'individual_com', re.sub(pattern, '_', '{}_Area_of_Interest'.format(row[1])) # Copy the feature the current row and give name at comm_name (AOI)
+                )
+    return comm
+        
+def clip_comm_roads(c,p1,p2 = None):                                                   
+    if p2:
+        arcpy.analysis.Clip(p2, c,re.sub(pattern, '_', '{}_Roads'.format(p1)), None)          
+        
+def clip_comm_baseline(c,p1,p3 = None):
+    if p3:
+        arcpy.analysis.Clip(p3, c,re.sub(pattern, '_', '{}_BuildingPts_Baseline'.format(p1)), None)
+ 
+    
+main()
